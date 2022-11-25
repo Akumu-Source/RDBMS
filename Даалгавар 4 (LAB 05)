@@ -1,0 +1,209 @@
+USE [master]
+GO
+
+--1
+IF DB_ID ('EmpDB') IS NOT NULL--DB baival ustgana
+DROP TABLE EmpDB
+GO 
+
+CREATE DATABASE EmpDB--DB uusgene
+GO
+USE EmpDB--DB songono
+GO
+
+--2
+IF OBJECT_ID ('EmpRegister') IS NOT NULL--table baival ustag
+DROP TABLE EmpRegister
+GO 
+
+CREATE TABLE EmpRegister(--table uusgeh
+ID int identity(1,1) PRIMARY KEY ,--id 1 1-r ahin mon primary key
+LastName nvarchar (20)  Default '.H',--unicode varchar 20 hemjeetei
+FirstName nvarchar (20) ,--unicode varchar 20 hemjeetei
+Age tinyint  CONSTRAINT Reg_Age CHECK ( Age BETWEEN 19 AND 39) , --18- aas 40 iin hoorond int hagas
+Hired_Date datetime default GETDATE()) --systemiin tsagaar bn
+GO
+
+--3
+IF OBJECT_ID ('EmpCode') IS NOT NULL --emp code bagana baina uu ugui yug shalgana baival ustgana
+ALTER TABLE EmpRegister 
+DROP column EmpCode
+GO
+
+ALTER TABLE EmpRegister--empregister uustsen table ruu emp code bagana uuusgene
+ADD EmpCode char(8) 
+GO
+
+--4
+IF OBJECT_ID ( 'CK_EmpRegister_EmpCode_const') IS NOT NULL --EmpRegisterEmpcode_check gesen constraint baival ustag
+ALTER TABLE EmpRegister 
+DROP CONSTRAINT CK_EmpRegister_EmpCode_const
+GO 
+
+ALTER TABLE EmpRegister --empregister dotor empcode constraint hiih emp eer ehelsen baih eostoi
+ADD CONSTRAINT CK_EmpRegister_EmpCode_const
+CHECK (LEFT('EmpCode',3) IN('Emp'))--zuunees 3 dasdana
+GO
+
+--5
+IF OBJECT_ID ('UQ_EmpRegister_EmpCode') IS NOT NULL
+ALTER TABLE EmpRegister 
+DROP CONSTRAINT UQ_EmpRegister_EmpCode_check --UQ UNIQUE
+GO 
+
+ALTER TABLE EmpRegister
+add CONSTRAINT UQ_EmpRegister_EmpCode_check 
+UNIQUE(EmpCode)
+GO 
+
+--6 Age баганыг устгах
+ALTER TABLE [EmpRegister]
+DROP CONSTRAINT Reg_Age
+GO
+
+ALTER TABLE EmpRegister
+DROP column Age
+GO
+
+--7 TimeSheet байвал устагаад хүснэгтийг үүсгэх.
+
+IF OBJECT_ID('TimeSheet') IS  NOT NULL 
+DROP TABLE TimeSheet
+GO
+   
+CREATE TABLE TimeSheet(
+[Number] int not null identity(1,1) PRIMARY KEY,
+EmpID int FOREIGN KEY REFERENCES EmpRegister(ID),--FK-- FOREIGN KEY
+Time_In datetime null default GETDATE(),
+Time_Out datetime null default GETDATE(),)
+GO 
+
+--8 Flag багана TimeSheet-д байвал устагаад нэмж оруулах 
+If OBJECT_ID(Flag) IS NOT NULL
+ALTER TABLE TimeSheet 
+DROP column Flag
+GO
+
+ALTER TABLE TimeSheet
+ADD Flag nchar(1) NOT NULL 
+GO
+
+--9Flag баганад зөвхөн 'И','Ч','Ө','Т','О','Х' гэсэн өгөгдөл орох нөхцөлтэй болгох,оруулах
+ALTER TABLE TimeSheet 
+ADD CONSTRAINT Flag_const  CHECK (Flag in( N'И',N'Ч',N'Ө',N'Т',N'О',N'Х'))
+GO 
+
+--10 EmpRegister хүснэгтэд оруулах.
+insert into EmpRegister values
+(N'Бат',N'Цэцэг' ,'2005/10/23', 'EMP00012'),-- empcode сүүлд үүссэн
+(N'Дорж', N'Алимаа' ,'2006/01/14' ,'EMP00014'),
+(N'Алтанхуяг' ,N'Хишигээ' ,'2006/02/01' ,'EMP00100'),
+(N'Ганбаяр', N'Нарансолонго', '2007/11/11', 'EMP00230'),
+(N'Төмөр', N'Батхишиг' ,'2008/11/12' ,'EMP00001'),
+(N'Дондог', N'Баярсолонго' ,'2008/07/18' ,'EMP00043')
+Go
+
+select *from EmpRegister
+GO
+
+--11 TimeSheet хүснэгтэд оруулах
+insert into TimeSheet values
+('1', '2009/02/20 08:10', '2009/02/20 19:23' ,N'И'),
+('3', '2009/02/20 08:40', '2009/02/20 19:24' ,N'И'),
+('2', '2009/02/20 08:56', '2009/02/20 18:00' ,N'И'),
+('4', '2009/02/20 09:04', '2009/02/20 20:15' ,N'Х'),
+('6', '2009/02/20 09:10', '2009/02/20 18:29' ,N'Х'),
+('5', '2009/02/21 08:57', '2009/02/21 18:10' ,N'И'),
+('1', '2009/02/21 08:59', '2009/02/21 19:14' ,N'И'),
+('3', '2009/02/21 08:59', '2009/02/21 22:30' ,N'И'),
+('4', '2009/02/21 09:00', '2009/02/21 18:04' ,N'И'),
+('2', '2009/02/21 09:00', '2009/02/21 09:00' ,N'Ө'),
+('6', '2009/02/21 10:27', '2009/02/21 18:10' ,N'Х'),
+('1', '2009/03/01 09:00', '2009/03/01 09:00' ,N'Ч'),
+('2', '2009/03/01 09:00', '2009/03/01 09:00' ,N'О'),
+('3', '2009/03/01 09:00', '2009/03/01 09:00' ,N'О'),
+('4', '2009/03/01 08:00', '2009/03/01 18:20' ,N'И'),
+('5', '2009/03/01 09:10', '2009/03/01 17:23' ,N'Х'),
+('6', '2009/03/01 09:34', '2009/03/01 17:56' ,N'Х')
+GO
+
+select *from TimeSheet --ojuulsan zuilsee haruulah timesheetd
+GO
+
+--12 2008 оноос өмнө орсон ажилчдын нэрсийг харуулах.
+SELECT FirstName FROM EmpRegister
+WHERE YEAR([Hired_Date]) < 2008 
+GO
+
+--13 Ажилласан жилийг харуулах.
+select FirstName,datediff(year,Hired_Date,getdate()) as [ажилласан жил]
+from EmpRegister
+GO
+
+--14 Cout ашиглан Б үсгээр эхэлсэн ажилчдыг тоолох.
+select count(*) as [Нэр Б-ээр эхэлсэн] from EmpRegister--count ni tooloh hanaas empregisterees
+WHERE FirstName LIKE N'Б%'--"Б"-ээр эхэлсэн утгыг олно нэрнээс
+GO
+
+--15
+SELECT [Ажилчдын нэрс овгийн эхний үсэгтэй] = LEFT(LastName, 1) + '.' + FirstName--lastname ээс зүүн талаас 1 үсэг аваад +(залгаад).+(залгаад)lastname
+FROM EmpRegister
+GO
+
+--16
+SELECT * ,YEAR(Hired_Date) AS [Ажилд орсон жил] --зөвхөн ажилд орсон жилүүд л харагдана
+FROM EmpRegister
+GO
+
+--17
+SELECT *FROM EmpRegister
+ORDER BY EmpCode DESC-- empcode-ыг буурах эрэмбээр DESC нь болгож байгаа
+GO
+
+--18
+SELECT *FROM TimeSheet
+WHERE CAST(Time_In AS DATE) = '2009/02/21' --case-ыг ашиглан 2009/02/21 өдөрт time_in дээр бүртгэсэн шалгана гаргана 
+GO
+
+--19 flag нь И байгаа ажилчдын timesheet-ыг харуулах
+SELECT * FROM TimeSheet
+WHERE Flag LIKE N'И' --like И байгааг олно
+GO
+
+--20 Хоцорсон ажилтангуудын EMPCODE тус бүрд ажилдаа хоцорсон тоог харуулах.
+SELECT EmpID, COUNT(Flag) AS [Хоцорсон тоо] FROM TimeSheet --empid bichegdeed araas ni toool ni
+WHERE Flag LIKE N'Х'--flag X g olno tuuniigee toolno count oor
+GROUP BY EmpID-- grouplene
+GO
+
+--21 20 iinhoo esreg boloh not in geed avaad hotsrooguuu ajiltniig haruulsan
+SELECT DISTINCT EmpID FROM TimeSheet
+WHERE EmpID NOT IN (
+	SELECT EmpID FROM TimeSheet
+	WHERE Flag LIKE N'Х'
+	GROUP BY EmpID 
+)
+GO
+
+--22 хоцорсон ажилчдын хэдэн минут хоцорсныг харуулах.
+SELECT *, DATEDIFF(minute, '09:00', FORMAT(Time_In, N'HH:mm')) AS [Хоцорсон минут]FROM TimeSheet
+WHERE Flag LIKE N'Х'--хоцорсон ажилчдыг олох .
+GO
+
+--23 Ажилчид ажлаас эрт буусан ажилчдыг харуулах
+SELECT *, DATEDIFF(minute, FORMAT(Time_Out, N'HH:mm'), '18:00') AS [Эрт буусан минут] --format ashiglan tsagiig ni avan 18:00 bag bol minutiin zoroog ni gargasan
+FROM TimeSheet WHERE FORMAT(Time_Out, N'HH:mm') < '18:00' AND FORMAT(Time_Out, N'HH:mm') <> '09:00' --9:00 tei Тэнцүү биш
+GO
+
+--24 Ажилчид нийт хэдэн минут хоцорсоныг харуулах
+SELECT EmpID, SUM(DATEDIFF(minute, '09:00', FORMAT(Time_In, N'HH:mm'))) AS [Нийт хоцорсон минут] -- sum aar nemeed yuvsan
+FROM TimeSheet WHERE  Flag LIKE N'Х'
+GROUP BY EmpID
+GO
+
+--25 ТОР 1 ашиглаад хамгийн дээр байгаа хамгийн их хоцорсон нэг ажилтанг харуулах
+SELECT TOP 1 EmpID FROM TimeSheet--top 3 gevel hamgiin ih hotsorson 3 ajiltang hajuulna 
+WHERE Flag LIKE N'Х'
+GROUP BY EmpID
+ORDER BY COUNT(Flag) DESC --buurah erembelsen 
+GO
