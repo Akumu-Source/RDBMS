@@ -1,0 +1,194 @@
+USE [master]
+GO
+
+--1 SuperMarket гэсэн нэртэй өгөгдлийн бааз үүсгэх.
+if DB_ID ('SuperMarket') is not NULL
+DROP DATABASE [SuperMarket]
+GO
+
+create DATABASE [SuperMarket]
+go
+
+use [SuperMarket]
+go
+
+--2 Product хүснэгтийг үүсгэх.
+create table [Product](
+ProID int identity(100,1) primary key,
+ProName nvarchar(30) not null,
+CategoryID int not null,
+Price int not null)
+go 
+
+--3 Өгөгдүүдийг Product хүснэгтэд оруулах.
+insert into Product values
+(N'Зууван цех талх', 1 ,750),
+(N'Буриад төмс', 2 ,600),
+(N'Саван', 3, 350),
+(N'Гэрлийн ламп', 3, 500),
+(N'Лууван', 2, 800),
+(N'Улаан төмс', 2 ,1000),
+(N'Цагаан лууван', 2 ,1200),
+(N'Болор архи', 8, 15000)
+go
+
+--4 Category хүснэгтийг үүсгэх.
+create table Category(
+CategoryID int identity primary key,
+CategoryName nvarchar(100) not null)
+go
+
+--5 Өгөгдүүдийг Category хүснэгтэд оруулах.
+insert into Category values
+(N'Бooв талх'),
+(N'Хүнсний ногоо'),
+(N'Гэр ахуйн бараа'),
+(N'Ус, ундаа')
+go
+
+--6 Sales хүснэгтийг үүсгэх.
+create table Sales(
+[Number] int  primary key identity,
+[Product] int ,
+[Count] int,
+[Date] smalldatetime default GETDATE())
+go
+
+--7 Өгөгдүүдийг Sales хүснэгтэд оруулах.
+insert into Sales values
+(100, 2 ,'2008/02/17'),
+(101, 3 ,'2008/02/17'),
+(106, 1 ,'2008/02/17'),
+(104, 3 ,'2008/02/18'),
+(100, 5 ,'2008/02/18'),
+(103 ,10 ,'2008/02/18'),
+(104, 1 ,'2008/02/19'),
+(106, 2 ,'2008/02/20'),
+(105, 3 ,'2008/02/20'),
+(105, 1 ,'2008/02/21'),
+(100, 1 ,'2008/02/21'),
+(101, 2 ,'2008/02/21'),
+(102, 4 ,'2008/02/22'),
+(105, 2 ,'2008/02/22'),
+(104, 5 ,'2008/02/22'),
+(100, 2 ,'2008/02/22'),
+(100, 1 ,'2008/02/22'),
+(100 ,15 ,'2008/02/23'),
+(101, 2 ,'2008/02/24'),
+(102, 1 ,'2008/02/25')
+go
+
+--8 2008.02.20 зарагдсан бараануудыг харуулах.
+SELECT ProName FROM Product
+WHERE ProID IN (
+    select Product from Sales
+    WHERE CAST([Date] AS date) = '2008/02/20') 
+go
+
+--9 Нэгч удаа борлуулалт хийгдээгүй барааг харуулах.
+select ProName from Product
+WHERE ProID not in (
+select Product from Sales)
+go
+
+--10 Product, Sales хүснэгтүүдийг нэгтгэж харуулах.
+SELECT ProID,ProName,Category,Price,[Count],[Date] from Product,Sales
+where Product.ProID like Sales.Product
+go
+
+--11 Cаван нийт хэдэн төгрөгөөр зарагдсаныг харуулах.
+SELECT Price*(
+    select sum([Count]) FROM Sales
+    where Product in (
+        select ProID from Product
+        where ProName like N'Саван')) from Product
+WHERE ProName like N'Саван'
+go
+
+--12 Хамгийн их зарагдсан 3 барааг харуулах.
+select ProName from Product
+where ProID IN (
+select top(3) Product FROM Sales
+    where Product in (
+        select ProID from Product)
+    group by Product 
+    order by sum([Count]) desc)
+go
+
+--13 Бараа болгон хэдэн ширхэг зарагдсаныг харуулах.. Жнь: Төмс - 5
+select CONCAT(Product.[ProName] , ' - ' , sum(Sales.[Count]) )from Product,Sales
+    where Sales.Product in (
+        select Product.ProID from Product) and Sales.Product like Product.ProID
+    group by  Sales.Product,Product.ProName
+go
+
+--14 Product хүснэгтэнд Саван гэсэн нэртэй бараа байвал Sales хүснэгтээс савангийн бүх борлуулалтыг харуулах.
+SELECT *from Sales 
+WHERE [Product] in (
+    select ProID FROM Product
+    where ProName like N'Саван'
+)
+go
+
+--15 Хамгийн их зарагдсан барааны төрлийг харуулах.
+SELECT CategoryName FROM Category
+WHERE CategoryID in(
+    select CategoryID from Product
+    where ProID IN (
+        select top(1) Product FROM Sales
+        where Product in (
+            select ProID from Product)
+        group by Product 
+        order by sum([Count]) desc
+    )
+)
+go
+
+--16 Луувангаас их үнэтэй бараануудыг харуулах.
+SELECT ProName FROM Product
+where ProID in(
+    SELECT ProID FROM Product
+    WHERE [Price]>(
+        SELECT Price FROM Product
+        where [ProName] like N'Лууван'
+    )
+)
+GO
+
+--17 Борлуулалтын дугаар, Барааны нэр, Барааны ангилал,Барааны тоо,Нэгж үнэ, Нийт үнэ,Зарагдсан огноог харуулсан хүснэгтийг нэгтгэн харуулах.
+SELECT  [Number] as [Борлуулалтын дугаар],ProName as [Барааны нэр],CategoryName as [Барааны ангилал],sum(Sales.[Count])AS [Барааны тоо],Product.price as [Нэгж үнэ],(sum(Sales.[Count]))*Product.Price as [Нийт үнэ],Sales.[Date] as [Зарагдсан огноо] from Product,Sales,Category
+where Sales.Product like Product.ProID  and Category.CategoryID like Product.CategoryID
+group by  Sales.Product,Product.ProName,Product.Price,Sales.[Number],CategoryName,Sales.[Date]
+order by [Number] asc
+Go
+
+--18 Бараа тус бүрийн Нэр,Төрөл,Нийт зарагдсан тоо,Нэгж үнэ,Нийт үнүүдийг харуулах.
+SELECT ProName as [Барааны нэр],CategoryName as [Төрөл],sum(Sales.[Count])AS [Нийт Зарагдсан тоо],Product.Price as [Нэгж үнэ],(sum(Sales.[Count]))*Product.Price as [Нийт үнэ] from Product,Sales,Category
+where Sales.Product like Product.ProID  and Category.CategoryID like Product.CategoryID
+group by  Sales.Product,Product.ProName,Product.Price,CategoryName
+GO
+
+--19 2008.02.25 зарагдсан бүх борлуултын Зарагдсан огноог 2008.02.27, Зарсан тоо ширхэгийг 5 болгож засах.
+select *FROM Sales--UPDATE hiihees omno
+GO
+
+UPDATE Sales set [Date]='2008/02/27', [Count]=5
+WHERE CAST([Date] AS date)='2008/02/27'
+go
+
+select *FROM Sales--UPDATE hiisnii daraa
+GO
+
+--20 Улаан төмстэй ижил ангиллын бараануудыг устгах.
+select *from Product-- delete hiihees omno
+go
+
+DELETE  from Product
+WHERE CategoryID in (
+    SELECT CategoryID FROM Product
+    WHERE ProName like N'Улаан төмс'
+)
+go
+
+select *from Product-- delete hiisnii daraa
+go
