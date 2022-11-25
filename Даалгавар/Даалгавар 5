@@ -65,21 +65,12 @@ group by ProductName
 GO
 
 --6 Бараа болгоны нийт үнийг [Нийт үнэ] гэсэн нэртэй шинэ багана үүсгэж харуулах.
-select [ProductName],[Нийт үнэ]=[Qty]*[UnitPrice] 
-from [Order]
-GO
-
 select [ProductName],[Qty]*[UnitPrice] as [Нийт үнэ]
 from [Order]
 GO
 
 --7 Барааны нэр, Захиалсан тоог хэмжих нэгжтэй нэг баганад оруулж гаруул Жнь: Цагаан лууван - 2кг
 SELECT [ProductName],CONCAT([Qty] , '' , [Unit] )
-AS [Захиалсан тоо]
-FROM [Order]
-GO
-
-SELECT [ProductName],CONVERT(VARCHAR(5),[Qty]) + '' + [Unit] 
 AS [Захиалсан тоо]
 FROM [Order]
 GO
