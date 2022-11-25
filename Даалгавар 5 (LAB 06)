@@ -1,0 +1,184 @@
+use [master]
+Go
+
+--1 Production өгөгдлийн санг үүсгэх.
+IF DB_ID ('Production') IS NOT NULL
+DROP DATABASE Production
+GO
+
+CREATE DATABASE [Production]
+Go
+use [Production]
+GO
+
+--2 Order хүснэгтийг үүсгэх
+IF OBJECT_ID ('Order') IS NOT NULL
+DROP TABLE [Order]
+GO 
+
+CREATE TABLE [Order](
+    ID INT PRIMARY KEY IDENTITY,
+    ProductID varchar(4) not null,
+    ProductName NVARCHAR(40) not null,
+    ProdcutType nvarchar(40) not null,
+    Unit nvarchar(10) not null,
+    Qty int not null,
+    UnitPrice money not null,
+    OrderDate smalldatetime not null
+)
+GO
+
+--3 Дараах өгөгдлийг Order хүснэгтэд оруулах.
+INSERT INTO [Order]
+VALUES 
+('bt01',N'Зууван цех талх',N'Боов талх',N'ш',2,750,'2008/02/17'),
+('hn01',N'Буриад төмс',N'Хүнсний ногоо',N'кг',3,600,'2008/02/17'),
+('ga01',N'Саван',N'Гэр ахуйн бараа',N'ш',1,350,'2008/02/17'),
+('ga02',N'Гэрлийн ламп',N'Гэр ахуйн бараа',N'ш',3,500,'2008/02/18'),
+('hn02',N'Лууван',N'Хүнсний ногоо', N'кг',5,800,'2008/02/18'),
+('hn03',N'Улаан төмс',N'Хүнсний ногоо',N'кг',10,1000,'2008/02/18'),
+('hn04',N'Цагаан лууван',N'Хүнсний ногоо',N'кг',1,1200,'2008/02/19'),
+('bt02',N'Сүүтэй талх',N'Боов талх',N'ш',2,780,'2008/02/20'),
+('ga03',N'Нүүр гарын саван',N'Гэр ахуйн бараа',N'ш',3,450,'2008/02/20'),
+('ga04',N'Шүдний ОО',N'Гэр ахуйн бараа',N'ш',1,1500,'2008/02/21'),
+('ga05',N'Шүдэнз',N'Гэр ахуйн бараа',N'ш',1,350,'2008/02/21'),
+('bt03',N'Хивэгтэй талх',N'Боов талх',N'ш',2,770,'2008/02/21'),
+('bt04',N'Хөх тарианы талх',N'Боов талх',N'ш',4,650,'2008/02/22'),
+('hn04',N'Цагаан лууван',N'Хүнсний ногоо',N'кг',2,1200,'2008/02/22'),
+('ga01',N'Саван',N'Гэр ахуйн бараа',N'ш',5,350,'2008/02/22'),
+('bt02',N'Сүүтэй талх',N'Боов талх',N'ш',2,780,'2008/02/22'),
+('ga02',N'Гэрлийн ламп',N'Гэр ахуйн бараа',N'ш',1,500,'2008/02/22'),
+('hn01',N'Буриад төмс',N'Хүнсний ногоо',N'кг',15,600,'2008/02/23'),
+('bt01',N'Зууван цех талх',N'Боов талх',N'ш',2,750,'2008/02/24'),
+('ga02',N'Гэрлийн ламп',N'Гэр ахуйн бараа',N'ш',1,500,'2008/02/25')
+GO
+
+--4 Захиалгын хүснэгтэд нийт хэдэн бараа байгааг харуулах.
+select count(*) as [Нийт бараа] 
+from [Order]
+GO
+
+--5 Боов Талх төрлийн бараануудыг харуулах.
+select [ProductName] from [Order]
+WHERE ProdcutType LIKE N'Боов талх'
+group by ProductName
+GO
+
+--6 Бараа болгоны нийт үнийг [Нийт үнэ] гэсэн нэртэй шинэ багана үүсгэж харуулах.
+select [ProductName],[Нийт үнэ]=[Qty]*[UnitPrice] 
+from [Order]
+GO
+
+select [ProductName],[Qty]*[UnitPrice] as [Нийт үнэ]
+from [Order]
+GO
+
+--7 Барааны нэр, Захиалсан тоог хэмжих нэгжтэй нэг баганад оруулж гаруул Жнь: Цагаан лууван - 2кг
+SELECT [ProductName],CONCAT([Qty] , '' , [Unit] )
+AS [Захиалсан тоо]
+FROM [Order]
+GO
+
+SELECT [ProductName],CONVERT(VARCHAR(5),[Qty]) + '' + [Unit] 
+AS [Захиалсан тоо]
+FROM [Order]
+GO
+
+--8 Хүсний ногоонд ямар ямар бараа байгааг давхцуулалгүй харуулах.
+SELECT [ProductName]FROM [Order] 
+WHERE[ProdcutType] LIKE N'Хүнсний ногоо'
+GROUP BY [ProductName]
+GO
+
+--9 Гэрлийн ламп нийт хэдэн ширхэгийг захиалсныг харуулах.
+SELECT SUM(Qty) as [Гэрлийн ламп]
+FROM [Order]
+WHERE [ProductName] LIKE N'Гэрлийн ламп'
+GO
+
+
+--10 Нийт хэдэн төгрөгний үнэтэй Хүнсний ногоо захиалсны харуулах.
+SELECT SUM([Qty]*[UnitPrice]) AS [Хүнсний ногооны дүн] FROM [Order] 
+WHERE ProdcutType LIKE N'Хүнсний ногоо'
+GO
+
+--11 2008.02.20-с хойш өнөөдрийг хүртэл ямар ямар бараа захиалсныг харуулах.
+SELECT [ProductName],[OrderDate] FROM [Order]
+WHERE CAST([OrderDate] AS date) > '2008/02/20';
+GO
+
+--12 ‘талх’ гэсэн үг орсон бүх бараануудыг харуулах.
+SELECT [ProductName] FROM [Order]
+WHERE [ProdcutType] LIKE N'Боов талх'
+GROUP BY [ProductName]
+GO
+
+--13 Нийт захиалгын хүснэгтэнд хэдэн төгрөгний үнэтэй бараа захиалсныг бодож гаргах.
+select sum([Qty]*[UnitPrice])
+from [Order]
+GO
+
+--14 ширхэгээр хэмждэггүй бараануудыг харуулах.
+SELECT [ProductName]  FROM [Order] as[ширхэгээр хэмждэггүй] 
+where [ProdcutType] LIKE N'Хүнсний ногоо'
+GROUP BY [ProductName]
+GO
+
+--15 tblBaraaTurul гэсэн хүснэгт үүсгэн түүнрүү барааны төрлийг давхардуулалгүйгээр хадгалах.
+CREATE TABLE tblBaraaTurul(
+   [Type] nvarchar(40) not null,
+)
+GO
+
+INSERT INTO [tblBaraaTurul]
+SELECT [ProdcutType]  FROM [Order] 
+GROUP BY [ProdcutType]
+GO
+
+
+--16 Боов Талх төрлийн бараанаас хамгийн их захиалсан 1 барааг харуулах.
+SELECT TOP 1 [ProductName] FROM [Order]
+WHERE [ProdcutType] LIKE N'Боов талх'
+GROUP BY [ProductName]
+ORDER BY COUNT([ProdcutType]) DESC
+GO
+
+--17 Хамгийн сүүлд захиалсан Сүүтэй талхны Захиалсан өдрийг олох.
+SELECT TOP 1 [ProductName],[OrderDate] AS [Хамгийн сүүлд захиалсан Сүүтэй талх] FROM [Order]
+WHERE [ProductName] LIKE N'Сүүтэй талх'
+GROUP BY [ProductName],[OrderDate]
+ORDER BY COUNT([OrderDate]) DESC
+GO
+
+--18 С, Ш үсгээр эхэлсэн бараануудыг сонгож харуулах.
+SELECT [ProductName] FROM [Order]
+WHERE  [ProductName] LIKE N'С%' OR [ProductName] LIKE N'Ш%'
+GROUP BY [ProductName]
+GO
+
+--19 Саван, Шүдэнз, Лууван гэсэн бараануудыг захиалсан захиалгуудыг харуулах.
+SELECT *FROM[Order]
+WHERE [ProductName]LIKE N'Саван' or [ProductName]LIKE N'Шүдэнз' or [ProductName]LIKE N'Лууван'
+GO
+
+--20 Бараа болгон нийт хэдийн хэмжээтэй захиалсныг харуулах.
+SELECT [ProductName],CONCAT(SUM([Qty]) ,'' ,[Unit]) FROM[ORDER]
+GROUP BY [ProductName],[Unit]
+ 
+--21 2008.02.19-2008.02.22 хооронд захиалсан баруунуудыг бараа болгоны нийт захиалсан хэмжээг group хийж харуулах.
+SELECT [ProductName], CONCAT(SUM([Qty]) ,'' ,[Unit]) FROM[ORDER]
+WHERE  CAST([OrderDate] AS date) > '2008/02/19' AND CAST([OrderDate] AS date) > '2008/02/22'
+GROUP BY [ProductName],[Unit]
+
+--22 Бараа болгоныг group хийж олсон нийт захиалсан хэмжээ нь 5-с их бараануудыг харуулах.
+SELECT [ProductName],CONCAT(SUM([Qty]) ,'' ,[Unit]) FROM[ORDER]
+GROUP BY [ProductName],[Unit]
+HAVING SUM([Qty])>5
+
+--23 Барааны төрөл тус бүр хэдэн бараа захиалсаныг group хийж харуулах.
+SELECT [ProdcutType],COUNT(ProdcutType) FROM [Order]
+GROUP BY [ProdcutType]
+
+--24 Бараа тус бүр хэдэн удаа захиалагдсаныг харуулах. Жнь: Гэрлийн ламп 3 удаа.
+SELECT [ProductName],CONCAT(COUNT([ProductName]),'',N'удаа') FROM [Order]
+GROUP BY [ProductName]
