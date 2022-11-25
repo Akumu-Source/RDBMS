@@ -1,0 +1,81 @@
+USE master
+GO
+--1
+CREATE DATABASE Emp_DB
+GO
+USE Emp_DB
+GO
+--2
+IF OBJECT_ID ('EmpRegister') IS NOT NULL
+DROP TABLE EmpRegister
+GO 
+
+CREATE TABLE EmpRegister(
+  ID int identity(100,2) PRIMARY KEY ,
+  LastName nvarchar (20)  Default '.н',
+  FirstName nvarchar (20) ,
+  Age tinyint  CONSTRAINT CK_EmpRegister_Age CHECK ( Age BETWEEN 19 AND 39) ,
+  Ajild_Orson datetime default GETDATE()
+  )GO
+
+--3
+IF OBJECT_ID ('EmpCode') IS NOT NULL
+ALTER TABLE EmpRegister 
+DROP COLUMN EmpCode
+GO 
+   
+ALTER TABLE EmpRegister
+ADD EmpCode char(8) 
+GO
+   
+--4
+IF OBJECT_ID ( 'CK_EmpRegister_EmpCode_Prefix') IS NOT NULL
+ALTER TABLE EmpRegister 
+DROP CONSTRAINT CK_EmpRegister_EmpCode_Prefix
+GO 
+
+ALTER TABLE EmpRegister 
+ADD CONSTRAINT CK_EmpRegister_EmpCode_Prefix
+CHECK (LEFT('EmpCode',3) IN('Emp'))
+GO
+   
+--5
+IF OBJECT_ID ('UQ_EmpRegister_EmpCode') IS NOT NULL
+ALTER TABLE EmpRegister 
+DROP CONSTRAINT UQ_EmpRegister_EmpCode
+GO 
+
+ALTER TABLE EmpRegister 
+ADD CONSTRAINT UQ_EmpRegister_EmpCode
+UNIQUE(EmpCode)
+GO 
+
+--6
+ALTER TABLE EmpRegister
+DROP CONSTRAINT CK_EmpRegister_Age
+GO 
+
+ALTER TABLE EmpRegister
+DROP COLUMN Age
+GO
+
+--7
+IF OBJECT_ID('TimeSheet') IS  NOT NULL 
+DROP TABLE TimeSheet
+GO
+   
+CREATE TABLE TimeSheet(
+  [Number] int not null identity(1,1) PRIMARY KEY,
+  EmpID int FOREIGN KEY REFERENCES EmpRegister(ID),
+  Irsen datetime null default GETDATE(),
+  Ywsan datetime null default GETDATE(),
+)GO 
+
+--8
+ALTER TABLE TimeSheet
+ADD Flag nchar(1) NOT NULL 
+
+ --9
+ALTER TABLE TIMESHEET 
+ADD CONSTRAINT Flag_const  CHECK (Flag in( N'И',N'Ч',N'Ө',N'Т',N'О',N'Х'))
+GO 
