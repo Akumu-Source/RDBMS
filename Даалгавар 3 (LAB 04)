@@ -1,0 +1,85 @@
+use [master]
+go
+create database bayarjargallbn;
+use bayarjargallbn;
+go 
+--1
+ create table Employee(
+ EmpCode int not null,
+ EmpName nvarchar(20) not null,
+ TursunOgnoo smalldatetime null,
+ AjildOrsonOgnoo smalldatetime not null,
+ Tsalin int not null,
+ AlbanTushaal nvarchar(30) not null,
+ )
+ --2
+ insert into Employee
+ values (1,N'Болд', '1982/03/08', '2005/12/01', '1000000', N'Захирал')
+
+ insert into Employee
+ values(2 ,N'Болдбаатар', '1985/09/26', '2006/02/01' ,'500000', N'Програмист')
+
+ insert into Employee
+ values(3, N'Баатар','1987/10/26', '2006/02/01', '500000',N'Програмист')
+
+ insert into Employee
+ values(4, N'Хүрэлсүх','1987/08/06 ','2006/02/01 ','500000 ',N'Програмист')
+ 
+ insert into Employee
+ values(5 ,N'Хулан' ,'1982/08/06 ','2006/01/01' ,'700000' ,N'АхлахПрограмист')
+
+ insert into Employee
+ values(6,N'Мягмар',' 1985/04/16 ','2005/10/07',' 300000', N'Шалгагч')
+
+ insert into Employee
+ values(7 ,N'Болд' ,'1981/05/06', '2005/10/07', '300000' ,N'Шалгагч')
+
+ insert into Employee
+ values(8, N'Пүрэвсүрэн' ,'1980/03/23 ','2007/11/23' ,'400000' ,N'Нягтлан бодогч')
+ 
+ insert into Employee
+ values (9, N'Давааням' ,1979/02/20 ,'2008/01/03' ,'700000' ,N'АхлахПрограмист')
+
+insert into Employee
+values (10, N'Наранчимэг ',1979/02/20 ,2008/01/03 ,700000, N'Програмист')
+delete Employee  
+select *from Employee
+
+--3
+select 
+max(Tsalin) As [Хамгийн өндөр цалин],
+min(Tsalin) As [Хамгийн бага цалин],
+avg(Tsalin) As [дундаж цалин] from Employee
+
+--4
+select count(*) as [Employee number] from Employee
+
+--5
+select count(*) as [programmist number] from Employee where AlbanTushaal in( N'Програмист')
+ 
+--6
+select EmpName,TursunOgnoo,AjildOrsonOgnoo from Employee 
+
+--7
+select Empname,datediff(year,AjildOrsonOgnoo,getdate()) as [ажилласан жил],datediff(year,TursunOgnoo,getdate()) as[Нас]
+from Employee
+
+--8
+select top(1)* from Employee order by TursunOgnoo 
+
+--9
+select *from Employee order by Tsalin 
+
+--10
+select top(3)*from Employee order by Tsalin desc
+
+--11
+select top(3)*from Employee order by Tsalin asc
+
+--12
+alter table employee
+add heltes nvarchar(100);
+
+--check
+select *from Employee
+exec sp_help Employee
