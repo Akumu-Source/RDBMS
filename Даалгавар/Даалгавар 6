@@ -92,9 +92,10 @@ select Product from Sales)
 go
 
 --10 Product, Sales хүснэгтүүдийг нэгтгэж харуулах.
-SELECT ProID,ProName,Category,Price,[Count],[Date] from Product,Sales
+SELECT Product.ProID,Product.ProName,Product.CategoryID,Product.Price,Sales.[Count],Sales.[Date] from Product,Sales
 where Product.ProID like Sales.Product
 go
+
 
 --11 Cаван нийт хэдэн төгрөгөөр зарагдсаныг харуулах.
 SELECT Price*(
