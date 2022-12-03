@@ -61,7 +61,7 @@ insert into Sales values
 (106, 1 ,'2008/02/17'),
 (104, 3 ,'2008/02/18'),
 (100, 5 ,'2008/02/18'),
-(103 ,10 ,'2008/02/18'),
+(103 ,10,'2008/02/18'),
 (104, 1 ,'2008/02/19'),
 (106, 2 ,'2008/02/20'),
 (105, 3 ,'2008/02/20'),
@@ -73,7 +73,7 @@ insert into Sales values
 (104, 5 ,'2008/02/22'),
 (100, 2 ,'2008/02/22'),
 (100, 1 ,'2008/02/22'),
-(100 ,15 ,'2008/02/23'),
+(100 ,15,'2008/02/23'),
 (101, 2 ,'2008/02/24'),
 (102, 1 ,'2008/02/25')
 go
@@ -104,6 +104,44 @@ select top(5) Product FROM Sales
 go
 
 --11 Төрөл тус бүр нийт хэдэн ширхэг бараа зарсаныг харуулсан vCategoryTotal view үүсгэх.
-select CategoryName,sum(Sales.[Count]
+create view vCategoryTotal as
+select Category.CategoryName,sum(Sales.[Count]) as [Too] from Category,Sales,Product
+where Sales.Product in (
+        select Product.ProID from Product
+        where  Product.CategoryID like Category.CategoryID) and Sales.Product like Product.ProID  
+        group by Category.CategoryName
+go
+--check
+    --table
+    sp_help Product go --2
+    sp_help Category go--4
+    sp_help Sales go  --6
+    --insert table
+    select *from Product go --3
+    select *from Category go --5
+    select *from Sales go --7
+    --view check
+    sp_helptext  vAll go
+    sp_helptext  vThree go
+    sp_helptext  vTop5  go
+    sp_helptext  vCategoryTotal go
 
 --12 insert into vThree values(2, 2, getdate()) гэсэн өгөгдлийг нэмж болох уу? Болохгүй бол яагаад?
+
+--үгүй vThree view нь 3 ширхэгээс дээш зарагдсан бараануудыг харуулсан мөн нэгтгэлүүд, DISTINCT эсвэл GROUP BY  ашигласан мөн 1-ээс дээс хүснэгтүүдийг холбосон тохиолдолд view-ийг шинчлэх өөрчлөх боломжгүй. Гэхдээ TRIGGER хэрэглэж болох байх
+--жишээлбэл ийм тохиолдолд insert хийж болно
+CREATE VIEW [12View]
+AS
+SELECT CategoryID, CategoryName
+FROM Category
+GO
+
+SELECT *from [12View]
+
+INSERT INTO [12View]
+(CategoryName)
+VALUES(N'Аялалын бараа')
+GO
+       
+SELECT *from [12View] 
+SELECT*from Category
