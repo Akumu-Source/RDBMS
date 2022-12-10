@@ -138,7 +138,7 @@ CREATE PROCEDURE dbo.UpdBook
 ,@title nvarchar(100)
 ,@author nvarchar(30)
 AS
-Update FROM Books set BookTitle=@title,Author=@author
+Update Books set BookTitle=@title,Author=@author
 WHERE BookID = @ID
 GO
 
