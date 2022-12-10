@@ -142,7 +142,7 @@ Update FROM Books set BookTitle=@title,Author=@author
 WHERE BookID = @ID
 GO
 
-EXEC dbo.UpdBook @ID= '100',@title='HTML',@author=N'Баяраа'
+EXEC dbo.UpdBook @ID= '100',@title='HTML',@author=N'Баяраа' // id gaar ni haigaad title author hoiriig solih
 go
 
 select *from Books
