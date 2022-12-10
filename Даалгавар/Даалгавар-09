@@ -1,0 +1,150 @@
+USE [master]
+go
+
+--1 Library өгөгдлийн санг үүсгэх.
+if DB_ID('Library')is not null
+drop DATABASE Library
+go
+
+create DATABASE Library
+go
+
+use Library
+go
+
+--2 Books хүснэгтийг үүсгэх.
+create table Books(
+    BookID int identity(100,1) primary key,
+    BookTitle nvarchar(100 )not null,
+    Author nvarchar(30) not null
+    )
+go
+
+--3 @title, @author гэсэн 2 parameter-тэй Books хүснэгт рүү өгөгдөл оруулдаг InsBook нэртэй SP бичих
+create procedure Insbook
+@title nvarchar(100),
+@author nvarchar(30)
+as
+insert into Books(
+    BookTitle,Author)
+    values(@title,@author)
+go
+
+--4 Өгөгдүүдийг Books хүснэгтэнд InsBook SP-г ашиглан оруулах
+exec dbo.Insbook
+ @title='Borland C++' 
+,@author=N'Бат'
+go
+exec dbo.Insbook
+@title='Java' 
+,@author=N'Хулан'
+go
+exec dbo.Insbook
+@title='ASP.NET with AJAX' 
+,@author=N'Баатар'
+go
+exec dbo.Insbook
+@title='Java Beginner' 
+,@author=N'Сүрэнжав'
+go
+exec dbo.Insbook
+@title='C#.NET' 
+,@author=N'Онтгонбаяр'
+go
+exec dbo.Insbook
+@title='JSP advanced' 
+,@author=N'Хүрэлсүх'
+go
+exec dbo.Insbook
+@title='Database programming' 
+,@author=N'Хулан'
+go
+exec dbo.Insbook
+@title='Borland Delphi' 
+,@author=N'Баатар'
+go
+
+select *from Books
+go
+
+--5 BookID-г өгөхөд тухайн номны нэр, зохиолчийг харуулдаг GetInfo гэсэн нэртэй SP бичих
+CREATE PROCEDURE dbo.GetInfo 
+@ID int
+AS
+SELECT BookTitle,Author FROM Books WHERE BookID = @ID
+GO
+
+EXEC dbo.GetInfo @ID= '100'--100-107 id gaa oruulna
+go
+
+select *from Books
+go
+
+--6 Номын зохиогчийн нэрийг өгөхөд тэр зохиолчийн бичсэн бүх номыг харуулдаг WriteBooks гэсэн нэртэй SP бичих
+CREATE PROCEDURE WriteBooks 
+@author nvarchar(30)
+AS
+SELECT BookTitle FROM Books WHERE Author = @author
+GO
+
+exec dbo.WriteBooks @author=N'Хулан'-- zohiolchdiin neriig solij bolno
+go
+
+select *from Books
+go
+
+--7 Номын нэрийг өгөгхөд тэр номыг устгадаг DelTitle нэртэй SP бичих
+CREATE PROCEDURE DelTitle 
+@Book nvarchar(100)
+AS
+delete from Books where BookTitle=@Book
+go
+
+exec dbo.DelTitle @Book='Borland Delphi' --nomiin title solij bolno
+go
+
+select *from Books
+go
+
+--8 Номын BookID-г өгөхөд өгсөн дугаартай номыг устгадаг байх
+CREATE PROCEDURE DelID 
+@ID int
+AS
+delete from Books where BookID=@ID
+go
+
+exec dbo.DelID @ID='100'  --id g ni solij bolno oruulsan id gaar ni ustgana
+go
+
+select *from Books
+go
+
+--9 Зохиолч тус бүр хэдэн ном бичсэнийг харуулах
+CREATE PROCEDURE dbo.[Check]
+AS
+select Author, Count(BookTitle)as [Too] from Books 
+group by Author
+go
+
+exec dbo.[Check]
+go
+
+select *from Books
+go
+
+--10 Номын дугаар, гарчиг, зохиогчийг өгөөд номын дугаараар нь шүүлт хийж засдаг байх UpdBook SP бичих
+CREATE PROCEDURE dbo.UpdBook 
+@ID int
+,@title nvarchar(100)
+,@author nvarchar(30)
+AS
+Update FROM Books set BookTitle=@title,Author=@author
+WHERE BookID = @ID
+GO
+
+EXEC dbo.UpdBook @ID= '100',@title='HTML',@author=N'Баяраа'
+go
+
+select *from Books
+go
+--easy kkk 
