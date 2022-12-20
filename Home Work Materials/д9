@@ -1,0 +1,187 @@
+use master
+go
+
+--1. Dictionary өгөгдлийн санг үүсгэх.
+if DB_ID('Dictionary') is not null
+drop database  Dictionary
+go
+
+create database Dictionary
+go
+
+use Dictionary
+go
+
+--2. Diction хүснэгтийг үүсгэх.
+CREATE table Diction (
+    [Number] int identity primary key,
+    English nvarchar(100) unique not null,
+    Mongolian nvarchar(100) unique not null,
+    [Count] int ,
+    CreatedDate smalldatetime,
+    UpdatedDate smalldatetime
+)
+go
+
+--3. AddWord гэсэн нэртэй Stored Procedure үүсгэ. Энэ нь дараах нөхцлийн хангасан байх
+CREATE PROCEDURE AddWord
+(
+    @EWord nvarchar(100),
+    @MWord nvarchar(100)
+)
+AS
+BEGIN
+    DECLARE @Count int=0;
+
+    BEGIN TRY
+        INSERT INTO Diction (English, Mongolian, CreatedDate, UpdatedDate, [Count])
+        VALUES (@EWord, @MWord, GETDATE(), GETDATE(), @Count);
+        PRINT 'Successfully added word'
+    END TRY
+    BEGIN CATCH
+        PRINT 'Error adding word: ';
+        PRINT ERROR_MESSAGE();
+    END CATCH
+END
+go
+
+--4. AddWord SP-г ашиглан 20 үг оруулах.
+EXEC AddWord 'Eng-a1','mon-a1';
+go
+EXEC AddWord 'Eng-a2','mon-a2';
+go
+EXEC AddWord 'Eng-a3','mon-a3';
+go
+EXEC AddWord 'Eng-a4','mon-a4';
+go
+EXEC AddWord 'Eng-a5','mon-a5';
+go
+EXEC AddWord 'Eng-a6','mon-a6';
+go
+EXEC AddWord 'Eng-a7','mon-a7';
+go
+EXEC AddWord 'Eng-a8','mon-a8';
+go
+EXEC AddWord 'Eng-a9','mon-a9';
+go
+EXEC AddWord 'Eng-a10','mon-a10';
+go
+EXEC AddWord 'Eng-a11','mon-a11';
+go
+EXEC AddWord 'Eng-a12','mon-a12';
+go
+EXEC AddWord 'Eng-a13','mon-a13';
+go
+EXEC AddWord 'Eng-a14','mon-a14';
+go
+EXEC AddWord 'Eng-a15','mon-a15';
+go
+EXEC AddWord 'Eng-a16','mon-a16';
+go
+EXEC AddWord 'Eng-a17','mon-a17';
+go
+EXEC AddWord 'Eng-a18','mon-a18';
+go
+EXEC AddWord 'Eng-a19','mon-a19';
+go
+EXEC AddWord 'Eng-a20','mon-a20';
+go
+
+--5. FindWord гэсэн үгийг монгол, ангилаар хайдаг SP үүсгэ. Дараах нөхцөлийг хангасан байна
+CREATE PROCEDURE FindWord
+(
+    @sWord nvarchar(100),
+    @SearchCategory varchar(100)
+)
+AS
+BEGIN
+    DECLARE @UpdateDate datetime = GETDATE();
+if @SearchCategory='Mongolian'
+BEGIN
+    UPDATE Diction
+    SET Count = Count + 1, UpdatedDate = @UpdateDate
+    WHERE Mongolian LIKE @sWord
+
+    SELECT [Number],Mongolian
+    FROM Diction
+    WHERE Mongolian LIKE @sWord
+    END
+else if @SearchCategory='English'
+BEGIN
+ UPDATE Diction
+    SET Count = Count + 1, UpdatedDate = @UpdateDate
+    WHERE English LIKE @sWord
+
+    SELECT [Number], English
+    FROM Diction
+    WHERE Mongolian LIKE @sWord
+    end
+END
+go
+EXEC FindWord 'Mon-a19', 'Mongolian';
+go
+
+--6 EditWord гэсэн үг засдаг SP үүсгэх. Дараах нөхцөлийг хангасан байна.
+CREATE PROCEDURE EditWord (
+    @Number int, 
+    @EditWord nvarchar(100), 
+    @SearchCategory nvarchar(100)
+    )
+AS
+BEGIN
+DECLARE @UpdateDate datetime = GETDATE();
+
+BEGIN TRY
+if @SearchCategory='Mongolian'
+BEGIN
+    UPDATE Diction
+    SET Mongolian=@EditWord,UpdatedDate = @UpdateDate
+    WHERE [Number] like @Number
+    PRINT 'Successfully EDIT word'
+END
+
+else if @SearchCategory='English'
+BEGIN
+    UPDATE Diction
+    SET English=@EditWord,UpdatedDate = @UpdateDate
+    WHERE [Number] like @Number
+    PRINT 'Successfully EDIT word'
+END
+
+END TRY
+
+BEGIN CATCH
+        PRINT 'Error EDIT ';
+        PRINT ERROR_MESSAGE();
+END CATCH
+END
+go
+
+EXEC EditWord '19', 'mon-ch19','Mongolian';--edit hiih
+go
+EXEC EditWord '19', 'mon-a20','Mongolian';--aldaag gargah
+go
+
+--7 DeleteWord гэсэн үг устгадаг SP үүсгэх.
+CREATE PROCEDURE DeleteWord
+(
+    @Number int
+)
+AS
+BEGIN
+if (SELECT [Number] from Diction WHERE [Number] like @Number) like @Number
+    BEGIN
+        delete from Diction
+        WHERE [Number] like @Number
+        PRINT 'Successfully DEL word'
+    END 
+else  
+    BEGIN 
+        PRINT 'Error DEL word:No items were found for you to delete';
+    END 
+END
+go
+EXEC DeleteWord '19';--edit hiih
+go
+EXEC DeleteWord '19';--aldaa ni
+go
