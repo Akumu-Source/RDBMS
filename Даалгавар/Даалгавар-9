@@ -14,7 +14,7 @@ go
 
 --2. Diction хүснэгтийг үүсгэх.
 CREATE table Diction (
-    [Number] int identity primary key,
+    [Number] int primary key,
     English nvarchar(100) unique not null,
     Mongolian nvarchar(100) unique not null,
     [Count] int ,
